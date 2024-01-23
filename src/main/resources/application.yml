@@ -1,0 +1,16 @@
+server:
+  port: 8081
+spring:
+  application:
+    name: ServiceEmailTrigger
+
+  mail:
+    host: ${SMTP}
+    port: 587
+    username: ${HOSTINGER_EMAIL}
+    password: ${HOSTINGER_PASSWORD}
+    properties:
+      "mail.smtp.ssl.trust": ${SMTP}
+      "mail.smtp.auth": true
+      "mail.smtp.starttls.enable": true
+      "mail.smtp.starttls.required": true
