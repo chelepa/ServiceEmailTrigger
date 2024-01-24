@@ -1,0 +1,66 @@
+name: chelepa.net CI
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositorio
+        uses: actions/checkout@v1
+      - name: Deploy para meu Hosting
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          REMOTE_PORT: ${{ secrets.REMOTE_PORT }}
+          REMOTE_PASSWORD: ${{ secrets.REMOTE_PASSWORD }}
+          ARGS:
+          SOURCE:
+          TARGET:  ${{ secrets.REMOTE_TARGET }}
+          SCRIPT_BEFORE: |
+            cd ${{ secrets.REMOTE_TARGET }}
+            cd ..
+            rm -r ServiceEmailTrigger/
+            mkdir ServiceEmailTrigger
+
+  created-config-Hostinger:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: executing remote ssh commands
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.REMOTE_PORT }}
+          script: |
+            cd ${{ secrets.REMOTE_TARGET }}
+            echo "
+              HOSTINGER_EMAIL=${{ secrets.HOSTINGER_EMAIL }}
+              HOSTINGER_PASSWORD=${{ secrets.HOSTINGER_PASSWORD }}
+              SMTP=${{ secrets.SMTP }}
+              TARGET=${{ secrets.REMOTE_TARGET }}
+            " > .env
+
+  create_docker_Up:
+    runs-on: ubuntu-latest
+    needs: created-config-Hostinger
+    steps:
+      - name: executing remote ssh commands
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.REMOTE_PORT }}
+          script: |
+            cd ${{ secrets.REMOTE_TARGET }}
+            docker stop ServiceEmailTrigger
+            docker rm ServiceEmailTrigger
+            docker image rm serviceemailtrigger-app
+            docker compose up -d

@@ -1,0 +1,18 @@
+version: "3.7"
+services:
+  app:
+    container_name: ServiceEmailTrigger
+    build:
+      context: .
+    environment:
+      HOSTINGER_EMAIL: ${HOSTINGER_EMAIL}
+      HOSTINGER_PASSWORD: ${HOSTINGER_PASSWORD}
+      SMTP: ${SMTP}
+    ports:
+      - "9003:8081"
+    networks:
+      - chelepa
+
+networks:
+  chelepa:
+    external: true
