@@ -11,7 +11,8 @@ services:
     ports:
       - "9003:8081"
     networks:
-      - chelepa
+      chelepa:
+        ipv4_address: 172.19.0.5
 
 networks:
   chelepa:
